@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XO Arena</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>XO Arena</h1>
+      <div class="user-info" id="user-info">
+        <button id="login-button" class="primary-button">Sign in with Google</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="play-grid">
+        <section id="status-section" class="status-section hidden">
+          <p id="status-message">Loading...</p>
+          <div class="score-summary">
+            <span id="score-display">Score: 0</span>
+            <span id="streak-display">Streak: 0</span>
+            <span id="rank-display">Rank: Rookie</span>
+          <span id="nickname-display">Nickname: player00001</span>
+          </div>
+          <div class="record-summary">
+            <span id="wins-display">Wins: 0</span>
+            <span id="losses-display">Losses: 0</span>
+            <span id="draws-display">Draws: 0</span>
+            <span id="winrate-display">Win Rate: 0%</span>
+          </div>
+        <div class="settings-panel">
+          <h3>Settings</h3>
+          <label for="nickname-input">Nickname</label>
+          <div class="nickname-controls">
+            <input id="nickname-input" type="text" maxlength="24" autocomplete="off" placeholder="player00001" />
+            <button id="nickname-save-button" class="secondary-button" type="button">Save</button>
+          </div>
+          <p id="nickname-feedback" class="settings-feedback"></p>
+        </div>
+        </section>
+
+        <section id="game-section" class="game-section hidden">
+          <div id="board" class="board"></div>
+          <div class="game-controls">
+            <button id="reset-button" class="secondary-button">Play Again</button>
+            <button id="logout-button" class="ghost-button">Log out</button>
+          </div>
+        </section>
+
+        <section id="scoreboard-section" class="scoreboard-section">
+          <div class="scoreboard-header">
+            <div class="scoreboard-title">
+              <h2>Scoreboard</h2>
+              <p id="scoreboard-note" class="scoreboard-note">Top 5 nicknames (sign in to customise yours)</p>
+            </div>
+          <div class="scoreboard-actions">
+            <button id="scoreboard-details-button" class="secondary-button" type="button">View detailed scoreboard</button>
+            <button id="refresh-scoreboard" class="secondary-button" type="button">Refresh</button>
+          </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Nickname</th>
+                <th>Win Rate</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="scoreboard-body"></tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+
+    <template id="cell-template">
+      <button class="cell" data-index=""></button>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
+
+

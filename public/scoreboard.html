@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XO Arena – Full Scoreboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="scoreboard-page">
+      <header class="scoreboard-page__header">
+        <h1>XO Arena Scoreboard</h1>
+        <p>
+          Full ranking of every challenger battling the XO bot. Stats update instantly when the
+          match ends. Use nicknames to keep your identity fun and distinct!
+        </p>
+      </header>
+      <div class="scoreboard-actions-bar">
+        <button id="back-to-game" class="secondary-button" type="button">Back to game</button>
+        <button id="refresh-details" class="primary-button" type="button">Refresh scoreboard</button>
+      </div>
+      <div class="scoreboard-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Nickname</th>
+              <th>Win rate</th>
+              <th>Score</th>
+              <th>Wins</th>
+              <th>Losses</th>
+              <th>Draws</th>
+              <th>Last updated</th>
+            </tr>
+          </thead>
+          <tbody id="details-body"></tbody>
+        </table>
+      </div>
+      <p id="details-meta" class="scoreboard-meta">Loading...</p>
+    </div>
+    <template id="details-row-template">
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </template>
+    <script type="module">
+      const detailsBody = document.getElementById('details-body');
+      const detailsMeta = document.getElementById('details-meta');
+      const backButton = document.getElementById('back-to-game');
+      const refreshButton = document.getElementById('refresh-details');
+      const rowTemplate = document.getElementById('details-row-template');
+
+      function formatWinRate(value) {
+        const numeric = Number.isFinite(value) ? value * 100 : 0;
+        return `${Math.round(numeric * 10) / 10}%`;
+      }
+
+      function formatTimestamp(timestamp) {
+        if (!timestamp) {
+          return '-';
+        }
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) {
+          return timestamp;
+        }
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(date);
+      }
+
+      async function loadDetails() {
+        detailsMeta.textContent = 'Loading full scoreboard...';
+        try {
+          const response = await fetch('/api/scores?view=all');
+          if (!response.ok) {
+            if (response.status === 401) {
+              detailsMeta.textContent = 'Sign in with Google to view the full scoreboard.';
+              return;
+            }
+            throw new Error('Failed to load scoreboard');
+          }
+          const scores = await response.json();
+          detailsBody.innerHTML = '';
+          scores.forEach((entry, index) => {
+            const row = rowTemplate.content.cloneNode(true).children[0];
+            const cells = row.querySelectorAll('td');
+            cells[0].textContent = index + 1;
+            cells[1].textContent = entry.nickname || entry.name || '-';
+            cells[2].textContent = formatWinRate(entry.winRate);
+            cells[3].textContent = entry.score;
+            cells[4].textContent = entry.wins;
+            cells[5].textContent = entry.losses;
+            cells[6].textContent = entry.draws;
+            cells[7].textContent = formatTimestamp(entry.lastUpdated);
+            detailsBody.append(row);
+          });
+          if (scores.length === 0) {
+            detailsMeta.textContent = 'No challengers yet. Sign in and defeat the bot!';
+          } else {
+            detailsMeta.textContent = `Showing ${scores.length} players. Keep climbing the ranks!`;
+          }
+        } catch (error) {
+          console.error(error);
+          detailsMeta.textContent = 'Something went wrong while loading the scoreboard.';
+        }
+      }
+
+      backButton?.addEventListener('click', () => {
+        window.location.href = '/';
+      });
+
+      refreshButton?.addEventListener('click', () => {
+        loadDetails();
+      });
+
+      window.addEventListener('DOMContentLoaded', () => {
+        loadDetails();
+      });
+    </script>
+  </body>
+</html>
+
