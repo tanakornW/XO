@@ -496,10 +496,18 @@ function resetGameState({ forceFirst = null } = {}) {
 }
 
 async function refreshScoreboard() {
+  if (!scoreboardBody) {
+    console.warn('Scoreboard body element not found');
+    return;
+  }
+
   try {
+    // Show loading state
+    scoreboardBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 1rem;">Loading...</td></tr>';
+    
     const response = await fetch('/api/scores/summary');
     if (!response.ok) {
-      throw new Error('Unable to load scoreboard');
+      throw new Error(`Unable to load scoreboard: ${response.status}`);
     }
     const summary = await response.json();
     const currentUserId = gameState.user?.id;
@@ -527,6 +535,12 @@ async function refreshScoreboard() {
     }
 
     scoreboardBody.innerHTML = '';
+    
+    if (rows.length === 0) {
+      scoreboardBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 1rem;">No players yet. Be the first!</td></tr>';
+      return;
+    }
+
     rows.forEach((entry, index) => {
       const row = document.createElement('tr');
       if (entry.id === currentUserId) {
@@ -554,7 +568,10 @@ async function refreshScoreboard() {
       scoreboardBody.append(row);
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error refreshing scoreboard:', error);
+    if (scoreboardBody) {
+      scoreboardBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 1rem; color: #f87171;">Failed to load scoreboard</td></tr>';
+    }
   }
 }
 
@@ -681,14 +698,23 @@ scoreboardDetailsButton?.addEventListener('click', () => {
 });
 
 window.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM loaded, initializing app...');
   updateSettingsState();
+  
+  // Always load scoreboard first (works even without authentication)
+  await refreshScoreboard();
+  
   const authenticated = await fetchUser();
   if (authenticated) {
+    console.log('User authenticated, starting game...');
     resetGameState();
+    // Refresh scoreboard again after user data is loaded
     await refreshScoreboard();
   } else {
-    statusMessage.textContent = 'Please sign in to play.';
-    await refreshScoreboard();
+    console.log('User not authenticated');
+    if (statusMessage) {
+      statusMessage.textContent = 'Please sign in to play.';
+    }
   }
 });
 
