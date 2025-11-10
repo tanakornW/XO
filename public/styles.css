@@ -1,3 +1,20 @@
+.status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.nickname-chip {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.95rem;
+  color: #f8fafc;
+  box-shadow: rgba(56, 189, 248, 0.2) 0px 8px 20px;
+}
 :root {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #e2e8f0;
@@ -37,6 +54,13 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.login-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .user-details {
@@ -174,6 +198,22 @@ main {
   color: #f87171;
 }
 
+.result-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(59, 130, 246, 0.25));
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 18px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f8fafc;
+  text-align: center;
+  box-shadow: rgba(2, 6, 23, 0.35) 0px 16px 40px;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, 120px);
@@ -257,6 +297,15 @@ button:active {
   color: #f8fafc;
 }
 
+.secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  background: rgba(148, 163, 184, 0.25);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: rgba(226, 232, 240, 0.65);
+}
+
 .ghost-button {
   background: transparent;
   color: rgba(226, 232, 240, 0.85);
@@ -266,6 +315,19 @@ button:active {
 .ghost-button:hover {
   color: #38bdf8;
   border-color: rgba(56, 189, 248, 0.35);
+}
+
+.ghost-button--outlined {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  color: rgba(226, 232, 240, 0.85);
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+}
+
+.ghost-button--outlined:hover {
+  border-color: rgba(59, 130, 246, 0.55);
+  color: #f8fafc;
+  background: rgba(59, 130, 246, 0.16);
 }
 
 .scoreboard-header {
@@ -477,20 +539,121 @@ button:active {
 }
 
 @media (max-width: 720px) {
+  body {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  main {
+    padding: 0.75rem;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .app-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
+    padding: 0.75rem 1rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .user-info {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .login-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .login-buttons button {
+    width: 100%;
+  }
+
+  .user-details img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .user-details span {
+    font-size: 0.9rem;
   }
 
   .play-grid {
     grid-template-columns: 1fr;
     width: 100%;
+    max-width: 100%;
+    gap: 1rem;
+    padding: 0;
   }
 
+  .status-section,
   .game-section,
   .scoreboard-section {
     width: 100%;
     max-width: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+
+  .status-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .status-header p {
+    font-size: 0.95rem;
+  }
+
+  .nickname-chip {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .score-summary,
+  .record-summary {
+    justify-content: center;
+    font-size: 0.85rem;
+    gap: 0.75rem;
+  }
+
+  .settings-panel {
+    padding: 0.9rem;
+  }
+
+  .settings-panel h3 {
+    font-size: 1rem;
+  }
+
+  .nickname-controls {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .nickname-controls input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    box-sizing: border-box;
+  }
+
+  .nickname-controls button {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    box-sizing: border-box;
   }
 
   .scoreboard-section {
@@ -498,42 +661,109 @@ button:active {
   }
 
   .scoreboard-section table {
-    min-width: 420px;
+    min-width: 380px;
+    font-size: 0.8rem;
+  }
+
+  .scoreboard-section th,
+  .scoreboard-section td {
+    padding: 0.6rem 0.5rem;
   }
 
   .scoreboard-header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
+    text-align: center;
+  }
+
+  .scoreboard-title {
+    align-items: center;
+  }
+
+  .scoreboard-title h2 {
+    font-size: 1.1rem;
+  }
+
+  .scoreboard-note {
+    font-size: 0.85rem;
   }
 
   .scoreboard-actions {
-    justify-content: flex-start;
+    justify-content: center;
     flex-wrap: wrap;
+    width: 100%;
+    gap: 0.5rem;
   }
 
   .board {
-    grid-template-columns: repeat(3, 90px);
-    gap: 10px;
+    grid-template-columns: repeat(3, min(85px, 28vw));
+    gap: 8px;
+    margin: 0.75rem auto;
   }
 
   .cell {
-    width: 90px;
-    height: 90px;
+    width: min(85px, 28vw);
+    height: min(85px, 28vw);
+    font-size: 2.2rem;
+  }
+
+  .result-banner {
+    font-size: 0.95rem;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.75rem;
   }
 
   .game-controls {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .game-controls button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    padding: 0.6rem 1rem;
   }
 
   .scoreboard-card {
-    padding: 1.1rem;
+    padding: 0.85rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .scoreboard-card table {
+    font-size: 0.8rem;
   }
 
   .scoreboard-card th,
   .scoreboard-card td {
-    padding: 0.65rem 0.75rem;
-    font-size: 0.9rem;
+    padding: 0.6rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .scoreboard-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .scoreboard-page__header h1 {
+    font-size: 1.5rem;
+  }
+
+  .scoreboard-page__header p {
+    font-size: 0.85rem;
+  }
+
+  .scoreboard-actions-bar {
+    gap: 0.6rem;
   }
 }
 

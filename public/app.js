@@ -1,9 +1,10 @@
-const loginButton = document.getElementById('login-button');
+const googleLoginButton = document.getElementById('google-login-button');
+const facebookLoginButton = document.getElementById('facebook-login-button');
 const logoutButton = document.getElementById('logout-button');
 const resetButton = document.getElementById('reset-button');
 const refreshScoreboardButton = document.getElementById('refresh-scoreboard');
-const viewTopButton = document.getElementById('view-top-button');
 const scoreboardDetailsButton = document.getElementById('scoreboard-details-button');
+const softResetButton = document.getElementById('soft-reset-button');
 
 const userInfo = document.getElementById('user-info');
 const statusSection = document.getElementById('status-section');
@@ -24,6 +25,7 @@ const scoreboardSection = document.getElementById('scoreboard-section');
 const scoreboardNote = document.getElementById('scoreboard-note');
 const scoreboardBody = document.getElementById('scoreboard-body');
 const boardElement = document.getElementById('board');
+const resultBanner = document.getElementById('result-banner');
 
 const cellTemplate = document.getElementById('cell-template');
 
@@ -37,6 +39,13 @@ const winningPatterns = [
   [0, 4, 8],
   [2, 4, 6],
 ];
+
+const BOT_BEHAVIOUR = {
+  finishChance: 0.95,
+  blockChance: 0.45,
+  centerChance: 0.55,
+  cornerChance: 0.6,
+};
 
 const gameState = {
   board: Array(9).fill(null),
@@ -173,6 +182,14 @@ function updateSettingsState() {
 function formatWinRate(winRate) {
   const percentage = Number.isFinite(winRate) ? winRate * 100 : 0;
   return `${Math.round(percentage * 10) / 10}%`;
+}
+
+function clearResultBanner() {
+  if (!resultBanner) {
+    return;
+  }
+  resultBanner.classList.add('hidden');
+  resultBanner.textContent = '';
 }
 
 function updateScoreDisplays({
@@ -320,23 +337,27 @@ function chooseBotMove() {
     return null;
   }
 
-  const winningMove = findCriticalMove(board, botSymbol);
-  if (winningMove !== null) {
-    return winningMove;
+  if (Math.random() < BOT_BEHAVIOUR.finishChance) {
+    const winningMove = findCriticalMove(board, botSymbol);
+    if (winningMove !== null) {
+      return winningMove;
+    }
   }
 
-  const blockingMove = findCriticalMove(board, playerSymbol);
-  if (blockingMove !== null) {
-    return blockingMove;
+  if (Math.random() < BOT_BEHAVIOUR.blockChance) {
+    const blockingMove = findCriticalMove(board, playerSymbol);
+    if (blockingMove !== null) {
+      return blockingMove;
+    }
   }
 
   const center = 4;
-  if (board[center] === null) {
+  if (board[center] === null && Math.random() < BOT_BEHAVIOUR.centerChance) {
     return center;
   }
 
   const corners = availableMoves.filter((index) => [0, 2, 6, 8].includes(index));
-  if (corners.length > 0) {
+  if (corners.length > 0 && Math.random() < BOT_BEHAVIOUR.cornerChance) {
     return corners[Math.floor(Math.random() * corners.length)];
   }
 
@@ -403,10 +424,40 @@ async function concludeGame(result) {
     } else {
       statusMessage.textContent = outcomeText;
     }
+    if (resultBanner) {
+      let bannerMessage = '';
+      if (payloadResult === 'win') {
+        bannerMessage = '🎉 เยี่ยมมาก! คุณชนะบอทแล้ว!';
+      } else if (payloadResult === 'loss') {
+        bannerMessage = '🤖 บอทกุมชัยชนะไว้ครั้งนี้';
+      } else {
+        bannerMessage = '😐 เสมอกัน ลองใหม่อีกครั้ง!';
+      }
+      resultBanner.textContent = bannerMessage;
+      resultBanner.classList.remove('hidden');
+    }
+    if (resetButton) {
+      resetButton.disabled = false;
+    }
     await refreshScoreboard();
   } catch (error) {
     statusMessage.textContent = `${outcomeText} (Score update failed)`;
     console.error(error);
+    if (resultBanner) {
+      let bannerMessage = '';
+      if (payloadResult === 'win') {
+        bannerMessage = '🎉 เยี่ยมมาก! คุณชนะบอทแล้ว!';
+      } else if (payloadResult === 'loss') {
+        bannerMessage = '🤖 บอทกุมชัยชนะไว้ครั้งนี้';
+      } else {
+        bannerMessage = '😐 เสมอกัน ลองใหม่อีกครั้ง!';
+      }
+      resultBanner.textContent = bannerMessage;
+      resultBanner.classList.remove('hidden');
+    }
+    if (resetButton) {
+      resetButton.disabled = false;
+    }
   }
 }
 
@@ -415,6 +466,7 @@ function resetGameState({ forceFirst = null } = {}) {
     clearTimeout(gameState.botTimeoutId);
     gameState.botTimeoutId = null;
   }
+  clearResultBanner();
   gameState.board = Array(9).fill(null);
   gameState.finished = false;
   if (forceFirst === 'player') {
@@ -438,6 +490,9 @@ function resetGameState({ forceFirst = null } = {}) {
       }
     }, 500);
   }
+  if (resetButton) {
+    resetButton.disabled = true;
+  }
 }
 
 async function refreshScoreboard() {
@@ -460,13 +515,11 @@ async function refreshScoreboard() {
     }
 
     if (scoreboardNote) {
-      if (
+      const playerOutsideTop =
         summary.player &&
         summary.player.id &&
-        rows.length > topArray.length &&
-        rows[rows.length - 1].id === summary.player.id &&
-        !topArray.some((entry) => entry.id === summary.player.id)
-      ) {
+        !topArray.some((entry) => entry.id === summary.player.id);
+      if (playerOutsideTop) {
         scoreboardNote.textContent = 'Top 5 nicknames plus your position';
       } else {
         scoreboardNote.textContent = 'Top 5 nicknames (sign in to customise yours)';
@@ -482,8 +535,8 @@ async function refreshScoreboard() {
       const winRatePercentage = formatWinRate(entry.winRate);
       const rankFromTop = topArray.findIndex((item) => item.id === entry.id);
       const displayRank =
-        entry.rank && Number.isFinite(entry.rank)
-          ? entry.rank
+        entry.position && Number.isFinite(entry.position)
+          ? entry.position
           : rankFromTop >= 0
             ? rankFromTop + 1
             : index + 1;
@@ -572,8 +625,12 @@ async function handleNicknameSave() {
   }
 }
 
-loginButton?.addEventListener('click', () => {
+googleLoginButton?.addEventListener('click', () => {
   window.location.href = '/auth/google';
+});
+
+facebookLoginButton?.addEventListener('click', () => {
+  window.location.href = '/auth/facebook';
 });
 
 logoutButton?.addEventListener('click', async () => {
@@ -613,6 +670,10 @@ nicknameInput?.addEventListener('input', () => {
   }
   nicknameFeedback.textContent = '';
   nicknameFeedback.classList.remove('success', 'error');
+});
+
+softResetButton?.addEventListener('click', () => {
+  resetGameState();
 });
 
 scoreboardDetailsButton?.addEventListener('click', () => {

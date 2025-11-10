@@ -10,26 +10,31 @@
     <header class="app-header">
       <h1>XO Arena</h1>
       <div class="user-info" id="user-info">
-        <button id="login-button" class="primary-button">Sign in with Google</button>
+        <div class="login-buttons">
+          <button id="google-login-button" class="primary-button">Sign in with Google</button>
+          <button id="facebook-login-button" class="secondary-button">Sign in with Facebook</button>
+        </div>
       </div>
     </header>
 
     <main>
       <div class="play-grid">
         <section id="status-section" class="status-section hidden">
+        <header class="status-header">
           <p id="status-message">Loading...</p>
-          <div class="score-summary">
-            <span id="score-display">Score: 0</span>
-            <span id="streak-display">Streak: 0</span>
-            <span id="rank-display">Rank: Rookie</span>
-          <span id="nickname-display">Nickname: player00001</span>
-          </div>
-          <div class="record-summary">
-            <span id="wins-display">Wins: 0</span>
-            <span id="losses-display">Losses: 0</span>
-            <span id="draws-display">Draws: 0</span>
-            <span id="winrate-display">Win Rate: 0%</span>
-          </div>
+          <span id="nickname-display" class="nickname-chip">Nickname: player00001</span>
+        </header>
+        <div class="score-summary">
+          <span id="score-display">Score: 0</span>
+          <span id="streak-display">Streak: 0</span>
+          <span id="rank-display">Rank: Rookie</span>
+        </div>
+        <div class="record-summary">
+          <span id="wins-display">Wins: 0</span>
+          <span id="losses-display">Losses: 0</span>
+          <span id="draws-display">Draws: 0</span>
+          <span id="winrate-display">Win Rate: 0%</span>
+        </div>
         <div class="settings-panel">
           <h3>Settings</h3>
           <label for="nickname-input">Nickname</label>
@@ -42,9 +47,11 @@
         </section>
 
         <section id="game-section" class="game-section hidden">
+          <div id="result-banner" class="result-banner hidden" role="status"></div>
           <div id="board" class="board"></div>
           <div class="game-controls">
-            <button id="reset-button" class="secondary-button">Play Again</button>
+            <button id="reset-button" class="secondary-button" disabled>Play Again</button>
+            <button id="soft-reset-button" class="ghost-button ghost-button--outlined" type="button">Reset Board</button>
             <button id="logout-button" class="ghost-button">Log out</button>
           </div>
         </section>

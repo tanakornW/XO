@@ -4,6 +4,7 @@ const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 const path = require('path');
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
@@ -12,12 +13,19 @@ const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_CALLBACK_URL,
+  FACEBOOK_APP_ID,
+  FACEBOOK_APP_SECRET,
+  FACEBOOK_CALLBACK_URL,
   SESSION_SECRET,
   PORT = 3000,
 } = process.env;
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-  throw new Error('Missing Google OAuth credentials. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the environment.');
+  console.warn('Warning: Missing Google OAuth credentials. Google login will not work.');
+}
+
+if (!FACEBOOK_APP_ID || !FACEBOOK_APP_SECRET) {
+  console.warn('Warning: Missing Facebook OAuth credentials. Facebook login will not work.');
 }
 
 if (!SESSION_SECRET) {
@@ -232,7 +240,7 @@ async function getSortedScores() {
     INNER JOIN users u ON u.id = s.user_id`,
   );
 
-  return rows
+  const sorted = rows
     .map((entry) => {
       const wins = Number(entry.wins) || 0;
       const losses = Number(entry.losses) || 0;
@@ -260,34 +268,71 @@ async function getSortedScores() {
       }
       return b.wins - a.wins;
     });
+
+  return sorted.map((entry, index) => ({
+    ...entry,
+    position: index + 1,
+  }));
 }
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: GOOGLE_CALLBACK_URL || 'http://localhost:3000/auth/google/callback',
-    },
-    (accessToken, refreshToken, profile, done) => {
-      const userProfile = {
-        id: profile.id,
-        displayName: profile.displayName,
-        email: profile.emails?.[0]?.value ?? '',
-        photo: profile.photos?.[0]?.value ?? '',
-      };
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: GOOGLE_CALLBACK_URL || 'http://localhost:3000/auth/google/callback',
+      },
+      (accessToken, refreshToken, profile, done) => {
+        const userProfile = {
+          id: `google_${profile.id}`,
+          displayName: profile.displayName,
+          email: profile.emails?.[0]?.value ?? '',
+          photo: profile.photos?.[0]?.value ?? '',
+        };
 
-      ensureUserRecord({
-        id: userProfile.id,
-        displayName: userProfile.displayName,
-        email: userProfile.email,
-        photo: userProfile.photo,
-      })
-        .then(() => done(null, userProfile))
-        .catch((error) => done(error));
-    },
-  ),
-);
+        ensureUserRecord({
+          id: userProfile.id,
+          displayName: userProfile.displayName,
+          email: userProfile.email,
+          photo: userProfile.photo,
+        })
+          .then(() => done(null, userProfile))
+          .catch((error) => done(error));
+      },
+    ),
+  );
+}
+
+if (FACEBOOK_APP_ID && FACEBOOK_APP_SECRET) {
+  passport.use(
+    new FacebookStrategy(
+      {
+        clientID: FACEBOOK_APP_ID,
+        clientSecret: FACEBOOK_APP_SECRET,
+        callbackURL: FACEBOOK_CALLBACK_URL || 'http://localhost:3000/auth/facebook/callback',
+        profileFields: ['id', 'displayName', 'emails', 'photos'],
+      },
+      (accessToken, refreshToken, profile, done) => {
+        const userProfile = {
+          id: `facebook_${profile.id}`,
+          displayName: profile.displayName,
+          email: profile.emails?.[0]?.value ?? '',
+          photo: profile.photos?.[0]?.value ?? '',
+        };
+
+        ensureUserRecord({
+          id: userProfile.id,
+          displayName: userProfile.displayName,
+          email: userProfile.email,
+          photo: userProfile.photo,
+        })
+          .then(() => done(null, userProfile))
+          .catch((error) => done(error));
+      },
+    ),
+  );
+}
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -313,6 +358,19 @@ app.get(
 app.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/?auth=failed' }),
+  (req, res) => {
+    res.redirect('/');
+  },
+);
+
+app.get(
+  '/auth/facebook',
+  passport.authenticate('facebook', { scope: ['email'] }),
+);
+
+app.get(
+  '/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/?auth=failed' }),
   (req, res) => {
     res.redirect('/');
   },
