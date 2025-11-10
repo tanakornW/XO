@@ -27,6 +27,31 @@ const scoreboardBody = document.getElementById('scoreboard-body');
 const boardElement = document.getElementById('board');
 
 const cellTemplate = document.getElementById('cell-template');
+const customModal = document.getElementById('custom-modal');
+const modalMessage = customModal?.querySelector('.modal-message');
+const modalButton = customModal?.querySelector('.modal-button');
+
+function showModal(message, title = 'Notice') {
+  if (!customModal || !modalMessage) return;
+  
+  const modalTitle = customModal.querySelector('.modal-title');
+  if (modalTitle) {
+    modalTitle.textContent = title;
+  }
+  modalMessage.textContent = message;
+  customModal.classList.remove('hidden');
+}
+
+function hideModal() {
+  if (!customModal) return;
+  customModal.classList.add('hidden');
+}
+
+// Close modal on button click
+modalButton?.addEventListener('click', hideModal);
+
+// Close modal on overlay click
+customModal?.querySelector('.modal-overlay')?.addEventListener('click', hideModal);
 
 function setStatusMessage(message) {
   if (!gameStatus) return;
@@ -615,6 +640,12 @@ async function handleNicknameSave() {
     if (!response.ok) {
       const errorPayload = await response.json().catch(() => ({}));
       const message = errorPayload.error || 'Failed to update nickname.';
+      
+      // Show modal for duplicate nickname (HTTP 409)
+      if (response.status === 409) {
+        showModal(message, 'Nickname Taken');
+      }
+      
       throw new Error(message);
     }
 

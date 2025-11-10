@@ -15,16 +15,46 @@
           <line x1="67" y1="10" x2="67" y2="90" stroke="rgba(148, 163, 184, 0.4)" stroke-width="2"/>
           <line x1="10" y1="33" x2="90" y2="33" stroke="rgba(148, 163, 184, 0.4)" stroke-width="2"/>
           <line x1="10" y1="67" x2="90" y2="67" stroke="rgba(148, 163, 184, 0.4)" stroke-width="2"/>
-          <!-- O (green) -->
-          <circle cx="50" cy="21" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
-          <!-- X (red) top right -->
-          <line x1="72" y1="16" x2="86" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-          <line x1="86" y1="16" x2="72" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-          <!-- X (red) bottom left -->
-          <line x1="14" y1="70" x2="28" y2="84" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-          <line x1="28" y1="70" x2="14" y2="84" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-          <!-- O (green) bottom right -->
-          <circle cx="79" cy="77" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+          
+          <!-- Frame 1: O, X, O, X -->
+          <g class="logo-frame logo-frame-1">
+            <circle cx="50" cy="21" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+            <line x1="72" y1="16" x2="86" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="86" y1="16" x2="72" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="21" cy="50" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+            <line x1="72" y1="43" x2="86" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="86" y1="43" x2="72" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          
+          <!-- Frame 2: X, O, X, O -->
+          <g class="logo-frame logo-frame-2">
+            <line x1="43" y1="14" x2="57" y2="28" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="57" y1="14" x2="43" y2="28" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="79" cy="23" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+            <line x1="14" y1="43" x2="28" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="28" y1="43" x2="14" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="79" cy="77" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+          </g>
+          
+          <!-- Frame 3: O, O, X, X -->
+          <g class="logo-frame logo-frame-3">
+            <circle cx="21" cy="21" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+            <circle cx="50" cy="23" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+            <line x1="14" y1="70" x2="28" y2="84" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="28" y1="70" x2="14" y2="84" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="72" y1="43" x2="86" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="86" y1="43" x2="72" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          
+          <!-- Frame 4: X, X, O, O -->
+          <g class="logo-frame logo-frame-4">
+            <line x1="43" y1="43" x2="57" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="57" y1="43" x2="43" y2="57" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="72" y1="70" x2="86" y2="84" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <line x1="86" y1="70" x2="72" y2="84" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="21" cy="77" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+            <circle cx="79" cy="23" r="9" fill="none" stroke="#10b981" stroke-width="3"/>
+          </g>
         </svg>
         XO Arena
       </h1>
@@ -116,6 +146,16 @@
     <template id="cell-template">
       <button class="cell" data-index=""></button>
     </template>
+
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <h3 class="modal-title">Notice</h3>
+        <p class="modal-message"></p>
+        <button class="modal-button primary-button">OK</button>
+      </div>
+    </div>
 
     <script src="app.js" type="module"></script>
   </body>

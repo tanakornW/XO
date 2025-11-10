@@ -261,11 +261,11 @@ async function getSortedScores() {
       };
     })
     .sort((a, b) => {
-      if (b.winRate !== a.winRate) {
-        return b.winRate - a.winRate;
-      }
       if (b.score !== a.score) {
         return b.score - a.score;
+      }
+      if (b.winRate !== a.winRate) {
+        return b.winRate - a.winRate;
       }
       return b.wins - a.wins;
     });
@@ -516,6 +516,16 @@ app.put('/api/user/nickname', ensureAuthenticated, async (req, res, next) => {
   }
 
   try {
+    // Check if nickname is already taken by another user
+    const existing = await get(
+      `SELECT id FROM users WHERE nickname = ? AND id != ?`,
+      [trimmed, req.user.id]
+    );
+    
+    if (existing) {
+      return res.status(409).json({ error: 'This nickname is already taken. Please choose another one.' });
+    }
+
     const timestamp = new Date().toISOString();
     await run(
       `UPDATE users SET nickname = ?, updated_at = ? WHERE id = ?`,
