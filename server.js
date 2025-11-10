@@ -244,16 +244,17 @@ async function getSortedScores() {
     .map((entry) => {
       const wins = Number(entry.wins) || 0;
       const losses = Number(entry.losses) || 0;
+      const draws = Number(entry.draws) || 0;
       const score = Number(entry.score) || 0;
-      const totalDecidedGames = wins + losses;
-      const winRate = totalDecidedGames > 0 ? wins / totalDecidedGames : 0;
+      const totalGames = wins + losses + draws;
+      const winRate = totalGames > 0 ? wins / totalGames : 0;
       const rank = computeRank({ winRate, score, wins });
       return {
         ...entry,
         score,
         wins,
         losses,
-        draws: Number(entry.draws) || 0,
+        draws,
         streak: Number(entry.streak) || 0,
         winRate,
         rank,
@@ -404,8 +405,8 @@ app.get('/api/user', ensureAuthenticated, async (req, res, next) => {
     const score = record?.score ?? 0;
     const streak = record?.streak ?? 0;
 
-    const totalDecidedGames = wins + losses;
-    const winRate = totalDecidedGames > 0 ? wins / totalDecidedGames : 0;
+    const totalGames = wins + losses + draws;
+    const winRate = totalGames > 0 ? wins / totalGames : 0;
     const rank = computeRank({ winRate, score, wins });
 
     res.json({
@@ -483,8 +484,8 @@ app.post('/api/game/result', ensureAuthenticated, async (req, res, next) => {
       ],
     );
 
-    const totalDecidedGames = updated.wins + updated.losses;
-    const winRate = totalDecidedGames > 0 ? updated.wins / totalDecidedGames : 0;
+    const totalGames = updated.wins + updated.losses + updated.draws;
+    const winRate = totalGames > 0 ? updated.wins / totalGames : 0;
     const rank = computeRank({ winRate, score: updated.score, wins: updated.wins });
 
     res.json({

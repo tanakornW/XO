@@ -92,7 +92,19 @@
           scores.forEach((entry, index) => {
             const row = rowTemplate.content.cloneNode(true).children[0];
             const cells = row.querySelectorAll('td');
-            cells[0].textContent = index + 1;
+            
+            // Convert rank to medal for top 3
+            const rank = entry.position || (index + 1);
+            let rankDisplay = rank;
+            if (rank === 1) {
+              rankDisplay = '🥇';
+            } else if (rank === 2) {
+              rankDisplay = '🥈';
+            } else if (rank === 3) {
+              rankDisplay = '🥉';
+            }
+            
+            cells[0].textContent = rankDisplay;
             cells[1].textContent = entry.nickname || entry.name || '-';
             cells[2].textContent = formatWinRate(entry.winRate);
             cells[3].textContent = entry.score;

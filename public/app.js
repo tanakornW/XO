@@ -8,7 +8,7 @@ const softResetButton = document.getElementById('soft-reset-button');
 
 const userInfo = document.getElementById('user-info');
 const statusSection = document.getElementById('status-section');
-const statusMessage = document.getElementById('status-message');
+const gameStatus = document.getElementById('game-status');
 const scoreDisplay = document.getElementById('score-display');
 const streakDisplay = document.getElementById('streak-display');
 const rankDisplay = document.getElementById('rank-display');
@@ -25,9 +25,13 @@ const scoreboardSection = document.getElementById('scoreboard-section');
 const scoreboardNote = document.getElementById('scoreboard-note');
 const scoreboardBody = document.getElementById('scoreboard-body');
 const boardElement = document.getElementById('board');
-const resultBanner = document.getElementById('result-banner');
 
 const cellTemplate = document.getElementById('cell-template');
+
+function setStatusMessage(message) {
+  if (!gameStatus) return;
+  gameStatus.textContent = message;
+}
 
 const winningPatterns = [
   [0, 1, 2],
@@ -49,8 +53,8 @@ const BOT_BEHAVIOUR = {
 
 const gameState = {
   board: Array(9).fill(null),
-  playerSymbol: 'X',
-  botSymbol: 'O',
+  playerSymbol: 'O',
+  botSymbol: 'X',
   playerTurn: true,
   finished: false,
   user: null,
@@ -184,13 +188,6 @@ function formatWinRate(winRate) {
   return `${Math.round(percentage * 10) / 10}%`;
 }
 
-function clearResultBanner() {
-  if (!resultBanner) {
-    return;
-  }
-  resultBanner.classList.add('hidden');
-  resultBanner.textContent = '';
-}
 
 function updateScoreDisplays({
   score = gameState.stats?.score ?? 0,
@@ -254,6 +251,14 @@ function renderBoard() {
     const cell = cellTemplate.content.firstElementChild.cloneNode(true);
     cell.dataset.index = String(index);
     cell.textContent = value ?? '';
+    
+    // Add color classes for O (green) and X (red)
+    if (value === 'O') {
+      cell.classList.add('cell-o');
+    } else if (value === 'X') {
+      cell.classList.add('cell-x');
+    }
+    
     cell.disabled = Boolean(value) || gameState.finished || !gameState.playerTurn || !gameState.user;
     cell.addEventListener('click', onCellClick, { once: true });
     boardElement.append(cell);
@@ -271,6 +276,7 @@ function onCellClick(event) {
   }
 
   makeMove(index, gameState.playerSymbol);
+  
   const outcome = evaluateBoard();
   if (outcome) {
     concludeGame(outcome);
@@ -364,7 +370,7 @@ function chooseBotMove() {
   return availableMoves[Math.floor(Math.random() * availableMoves.length)];
 }
 
-function botMove() {
+function botMove(isFirstMove = false) {
   if (gameState.botTimeoutId) {
     clearTimeout(gameState.botTimeoutId);
     gameState.botTimeoutId = null;
@@ -374,13 +380,19 @@ function botMove() {
     return;
   }
   makeMove(move, gameState.botSymbol);
+  
+  if (isFirstMove) {
+    setStatusMessage('Bot starts, placed X - Your turn');
+  } else {
+    setStatusMessage('Bot placed X - Your turn');
+  }
+  
   const outcome = evaluateBoard();
   if (outcome) {
     concludeGame(outcome);
   } else {
     gameState.playerTurn = true;
     renderBoard();
-    statusMessage.textContent = 'Your move!';
   }
 }
 
@@ -397,15 +409,16 @@ async function concludeGame(result) {
   if (result === 'player') {
     outcomeText = 'You win! 🎉';
     payloadResult = 'win';
+    setStatusMessage('Congratulations! You win!');
   } else if (result === 'bot') {
     outcomeText = 'Bot wins! Try again.';
     payloadResult = 'loss';
+    setStatusMessage('You lost');
   } else {
     outcomeText = "It's a draw.";
     payloadResult = 'draw';
+    setStatusMessage('Draw');
   }
-
-  statusMessage.textContent = `${outcomeText} Sending result...`;
 
   try {
     const response = await fetch('/api/game/result', {
@@ -418,43 +431,16 @@ async function concludeGame(result) {
     }
     const data = await response.json();
     updateScoreDisplays({ ...data, nickname: gameState.nickname });
-
-    if (data.bonusAwarded) {
-      statusMessage.textContent = `${outcomeText} Bonus streak awarded!`;
-    } else {
-      statusMessage.textContent = outcomeText;
-    }
-    if (resultBanner) {
-      let bannerMessage = '';
-      if (payloadResult === 'win') {
-        bannerMessage = '🎉 เยี่ยมมาก! คุณชนะบอทแล้ว!';
-      } else if (payloadResult === 'loss') {
-        bannerMessage = '🤖 บอทกุมชัยชนะไว้ครั้งนี้';
-      } else {
-        bannerMessage = '😐 เสมอกัน ลองใหม่อีกครั้ง!';
-      }
-      resultBanner.textContent = bannerMessage;
-      resultBanner.classList.remove('hidden');
-    }
+    
+    // Don't overwrite the game result message for bonus
+    
     if (resetButton) {
       resetButton.disabled = false;
     }
     await refreshScoreboard();
   } catch (error) {
-    statusMessage.textContent = `${outcomeText} (Score update failed)`;
     console.error(error);
-    if (resultBanner) {
-      let bannerMessage = '';
-      if (payloadResult === 'win') {
-        bannerMessage = '🎉 เยี่ยมมาก! คุณชนะบอทแล้ว!';
-      } else if (payloadResult === 'loss') {
-        bannerMessage = '🤖 บอทกุมชัยชนะไว้ครั้งนี้';
-      } else {
-        bannerMessage = '😐 เสมอกัน ลองใหม่อีกครั้ง!';
-      }
-      resultBanner.textContent = bannerMessage;
-      resultBanner.classList.remove('hidden');
-    }
+    // Don't overwrite game result message on error
     if (resetButton) {
       resetButton.disabled = false;
     }
@@ -466,7 +452,6 @@ function resetGameState({ forceFirst = null } = {}) {
     clearTimeout(gameState.botTimeoutId);
     gameState.botTimeoutId = null;
   }
-  clearResultBanner();
   gameState.board = Array(9).fill(null);
   gameState.finished = false;
   if (forceFirst === 'player') {
@@ -476,17 +461,19 @@ function resetGameState({ forceFirst = null } = {}) {
   } else {
     gameState.playerTurn = Math.random() < 0.5;
   }
+  
   if (gameState.playerTurn) {
-    statusMessage.textContent = 'Your move!';
+    setStatusMessage('You start first');
   } else {
-    statusMessage.textContent = 'Bot goes first...';
+    setStatusMessage(''); // Will be set by botMove
   }
+  
   renderBoard();
   if (!gameState.playerTurn) {
     gameState.botTimeoutId = window.setTimeout(() => {
       gameState.botTimeoutId = null;
       if (!gameState.playerTurn && !gameState.finished) {
-        botMove();
+        botMove(true); // Pass true to indicate first move
       }
     }, 500);
   }
@@ -554,8 +541,19 @@ async function refreshScoreboard() {
           : rankFromTop >= 0
             ? rankFromTop + 1
             : index + 1;
+      
+      // Convert rank to medal for top 3
+      let rankDisplay = displayRank;
+      if (displayRank === 1) {
+        rankDisplay = '🥇';
+      } else if (displayRank === 2) {
+        rankDisplay = '🥈';
+      } else if (displayRank === 3) {
+        rankDisplay = '🥉';
+      }
+      
       const cells = [
-        displayRank,
+        rankDisplay,
         entry.nickname || entry.name || 'player',
         winRatePercentage,
         entry.score,
@@ -584,7 +582,6 @@ async function handleNicknameSave() {
     nicknameFeedback.textContent = 'Sign in with Google to customise your nickname.';
     nicknameFeedback.classList.remove('success');
     nicknameFeedback.classList.add('error');
-    statusMessage.textContent = 'Please sign in to customise your nickname.';
     return;
   }
 
@@ -712,9 +709,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     await refreshScoreboard();
   } else {
     console.log('User not authenticated');
-    if (statusMessage) {
-      statusMessage.textContent = 'Please sign in to play.';
-    }
   }
 });
 

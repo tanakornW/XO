@@ -93,24 +93,7 @@ yarn dev
 - Customize your nickname in the Settings panel
 - Click "View all players" to see the full scoreboard with detailed stats
 
-## Deployment
 
-### Railway
-
-1. Connect your GitHub repository to Railway
-2. Add the following environment variables in Railway dashboard:
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET`
-   - `GOOGLE_CALLBACK_URL` (e.g., `https://your-app.up.railway.app/auth/google/callback`)
-   - `FACEBOOK_APP_ID`
-   - `FACEBOOK_APP_SECRET`
-   - `FACEBOOK_CALLBACK_URL` (e.g., `https://your-app.up.railway.app/auth/facebook/callback`)
-   - `SESSION_SECRET`
-   - `PORT` (optional, defaults to 3000)
-
-3. Update OAuth redirect URIs in Google Cloud Console and Facebook Developers to include your Railway URL
-
-4. Deploy and enjoy!
 
 ## Project Structure
 
@@ -150,22 +133,8 @@ XO/
 - User IDs are prefixed with provider name (`google_xxx`, `facebook_xxx`) to avoid conflicts.
 - The development server uses Express 5 with native `node --watch` available under `npm run dev`.
 - Nickname validation: 3-24 characters, alphanumeric + spaces, hyphens, underscores only.
+- **Win Rate Calculation**: `Wins / (Wins + Losses + Draws)` - includes all games played.
 
-## Troubleshooting
 
-**"Missing Google/Facebook OAuth credentials" error:**
-- Ensure `.env` file exists with correct credentials
-- Verify environment variables are set in Railway (for production)
-
-**OAuth redirect error:**
-- Check that redirect URIs in Google/Facebook console match exactly (including protocol and trailing slashes)
-- Ensure app domains are configured correctly
-
-**Database locked error:**
-- Stop all running node processes: `taskkill /F /IM node.exe` (Windows) or `pkill node` (Mac/Linux)
-
-**Scoreboard not loading:**
-- Check browser console for errors (F12 → Console)
-- Verify `/api/scores/summary` endpoint returns data
 
 
